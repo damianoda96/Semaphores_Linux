@@ -8,6 +8,8 @@ int mutex_used = 1, generated_item[2], generated = 0 , running = 1;
 
 int is_tobacco = 0, is_paper = 0, is_match = 0;
 
+int smoke_counter = 0;
+
 char *item[] = {"tobacco","paper","matches"}; 
 
 sem_t mutex, agent_sem, tobacco, paper, match, to_sem, pa_sem, ma_sem;
@@ -56,7 +58,7 @@ void *tobacco_pusher(void *arg)
 {
 	while(1)
 	{
-		printf("Pushin Tabacci...\n");
+		//printf("Pushin Tabacci...\n");
 		//sleep(2);
 		sem_wait(&tobacco);
 		sem_wait(&mutex);
@@ -83,7 +85,7 @@ void *paper_pusher(void *arg)
 {
 	while(1)
 	{
-		printf("Pushin papa...\n");
+		//printf("Pushin papa...\n");
 		//sleep(2);
 		sem_wait(&paper);
 		sem_wait(&mutex);
@@ -110,7 +112,7 @@ void *match_pusher(void *arg)
 {
 	while(1)
 	{
-		printf("Pushin matchy...\n");
+		//printf("Pushin matchy...\n");
 		//sleep(2);
 		sem_wait(&match);
 		sem_wait(&mutex);
@@ -135,42 +137,45 @@ void *match_pusher(void *arg)
 
 // ######_____________ SMOKERS _________ ############
 
-void *tobacco_smoker()
+void *tobacco_smoker(void *arg)
 {
 	while(1)
 	{
 		sem_wait(&to_sem);
 		printf("Making cigarette...\n");
-		sleep(2);
+		sleep(4);
 		sem_post(&agent_sem);
 		printf("Smoking cigarette...\n");
-		sleep(2);
+		sleep(4);
+		smoke_counter+=1;
 	}
 }
 
-void *paper_smoker()
+void *paper_smoker(void *arg)
 {
 	while(1)
 	{
 		sem_wait(&pa_sem);
 		printf("Making cigarette...\n");
-		sleep(2);
+		sleep(4);
 		sem_post(&agent_sem);
 		printf("Smoking cigarette...\n");
-		sleep(2);
+		sleep(4);
+		smoke_counter+=1;
 	}
 }
 
-void *match_smoker()
+void *match_smoker(void *arg)
 {
 	while(1)
 	{
 		sem_wait(&ma_sem);
 		printf("Making cigarette...\n");
-		sleep(2);
+		sleep(4);
 		sem_post(&agent_sem);
 		printf("Smoking cigarette...\n");
-		sleep(2);
+		sleep(4);
+		smoke_counter+=1;
 	}
 }
 
@@ -226,7 +231,6 @@ void *smoker(void *i)
 
 int main() 
 { 
-
 	// TEST:
 
 	pthread_t agnt0, agnt1, agnt2, t_pusher, p_pusher, m_pusher;
@@ -258,7 +262,7 @@ int main()
 	pthread_create(&m_smoker1, 0, match_smoker, 0);
 	pthread_create(&m_smoker2, 0, match_smoker, 0);
 
-	while(running);
+	while(smoke_counter < 18);
 
 	// WORKING:
 
