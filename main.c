@@ -4,13 +4,9 @@
 #include<pthread.h>
 #include<unistd.h>
 
-int mutex_used = 1, generated_item[2], generated = 0 , running = 1;
-
 int is_tobacco = 0, is_paper = 0, is_match = 0;
 
 int smoke_counter = 0;
-
-char *item[] = {"tobacco","paper","matches"}; 
 
 sem_t mutex, agent_sem, tobacco, paper, match, to_sem, pa_sem, ma_sem;
 
@@ -21,7 +17,7 @@ void *agent0(void *arg)
 	while(1)
 	{
 		printf("Agent0 puts TOBACCO and PAPER on table...\n");
-		sleep(2);
+		sleep(3);
 		sem_wait(&agent_sem);
 		sem_post(&tobacco);
 		sem_post(&paper);
@@ -33,7 +29,7 @@ void *agent1(void *arg)
 	while(1)
 	{
 		printf("Agent1 puts TOBACCO and MATCH on table...\n");
-		sleep(2);
+		sleep(3);
 		sem_wait(&agent_sem);
 		sem_post(&tobacco);
 		sem_post(&match);
@@ -45,7 +41,7 @@ void *agent2(void *arg)
 	while(1)
 	{
 		printf("Agent2 puts PAPER and MATCH on table...\n");
-		sleep(2);
+		sleep(3);
 		sem_wait(&agent_sem);
 		sem_post(&paper);
 		sem_post(&match);
@@ -58,8 +54,6 @@ void *tobacco_pusher(void *arg)
 {
 	while(1)
 	{
-		//printf("Pushin Tabacci...\n");
-		//sleep(2);
 		sem_wait(&tobacco);
 		sem_wait(&mutex);
 
@@ -85,8 +79,6 @@ void *paper_pusher(void *arg)
 {
 	while(1)
 	{
-		//printf("Pushin papa...\n");
-		//sleep(2);
 		sem_wait(&paper);
 		sem_wait(&mutex);
 
@@ -112,8 +104,6 @@ void *match_pusher(void *arg)
 {
 	while(1)
 	{
-		//printf("Pushin matchy...\n");
-		//sleep(2);
 		sem_wait(&match);
 		sem_wait(&mutex);
 
@@ -142,11 +132,11 @@ void *tobacco_smoker(void *arg)
 	while(1)
 	{
 		sem_wait(&to_sem);
-		printf("Making cigarette...\n");
-		sleep(4);
+		printf("Smoker %d is MAKING a cigarette...\n", (int)(size_t)arg);
+		sleep(2);
 		sem_post(&agent_sem);
-		printf("Smoking cigarette...\n");
-		sleep(4);
+		printf("Smoker %d is SMOKING a cigarette...\n", (int)(size_t)arg);
+		sleep(2);
 		smoke_counter+=1;
 	}
 }
@@ -156,11 +146,11 @@ void *paper_smoker(void *arg)
 	while(1)
 	{
 		sem_wait(&pa_sem);
-		printf("Making cigarette...\n");
-		sleep(4);
+		printf("Smoker %d is MAKING a cigarette...\n", (int)(size_t)arg);
+		sleep(2);
 		sem_post(&agent_sem);
-		printf("Smoking cigarette...\n");
-		sleep(4);
+		printf("Smoker %d is SMOKING a cigarette...\n", (int)(size_t)arg);
+		sleep(2);
 		smoke_counter+=1;
 	}
 }
@@ -170,69 +160,19 @@ void *match_smoker(void *arg)
 	while(1)
 	{
 		sem_wait(&ma_sem);
-		printf("Making cigarette...\n");
-		sleep(4);
+		printf("Smoker %d is MAKING a cigarette...\n", (int)(size_t)arg);
+		sleep(2);
 		sem_post(&agent_sem);
-		printf("Smoking cigarette...\n");
-		sleep(4);
+		printf("Smoker %d is SMOKING a cigarette...\n", (int)(size_t)arg);
+		sleep(2);
 		smoke_counter+=1;
 	}
 }
 
-// ######_____________ STARTER STUFF ________________######
-
-void *agent(void *arg) 
-{ 
-	int i, j, k=0;
-
-	while(1)       
-	{ 
-		sleep(2); 
-		sem_wait(&mutex); 
-		if(mutex_used==1)             
-		{ 
-			i=k; 
-			j=i+1; 
-			if(j==3) 
-				j=0; 
-			k=j; 
-			generated_item[0]=i; 
-			generated_item[1]=j; 
-			printf("agent is produced %s,%s\n",item[i],item[j]); 
-			generated=1; 
-			mutex_used=0;             
-		}
-
-		sem_post(&mutex);       
-	} 
-}
-
-void *smoker(void *i)
-{ 
-	while(1)       
-	{
-		sleep(2); 
-		sem_wait(&mutex); 
-		if(mutex_used==0)            
-		{ 
-			if(generated && generated_item[0]!= (int)(size_t)i && generated_item[1]!= (int)(size_t)i) 
-			{ 
-				printf("smoker%d completed his smoking\n",(int)(size_t)i); 
-				mutex_used=1; 
-				generated=0;                     
-			}             
-		}
-
-		sem_post(&mutex);       
-	} 
-}
-
-// _________________________________________
+// ######________________ MAIN __________________######
 
 int main() 
 { 
-	// TEST:
-
 	pthread_t agnt0, agnt1, agnt2, t_pusher, p_pusher, m_pusher;
 	pthread_t t_smoker1, t_smoker2, p_smoker1, p_smoker2, m_smoker1, m_smoker2;
 
@@ -253,29 +193,16 @@ int main()
 
 	// Smokers
 
-	pthread_create(&t_smoker1, 0, tobacco_smoker, 0);
-	pthread_create(&t_smoker2, 0, tobacco_smoker, 0);
+	pthread_create(&t_smoker1, 0, tobacco_smoker, 1);
+	pthread_create(&t_smoker2, 0, tobacco_smoker, 2);
 
-	pthread_create(&p_smoker1, 0, paper_smoker, 0);
-	pthread_create(&p_smoker2, 0, paper_smoker, 0);
+	pthread_create(&p_smoker1, 0, paper_smoker, 3);
+	pthread_create(&p_smoker2, 0, paper_smoker, 4);
 
-	pthread_create(&m_smoker1, 0, match_smoker, 0);
-	pthread_create(&m_smoker2, 0, match_smoker, 0);
+	pthread_create(&m_smoker1, 0, match_smoker, 5);
+	pthread_create(&m_smoker2, 0, match_smoker, 6);
 
 	while(smoke_counter < 18);
-
-	// WORKING:
-
-	/*pthread_t smkr0,smkr1,smkr2,agnt;
-
-	sem_init(&mutex,0,1);
-
-	pthread_create(&agnt, 0, agent, 0); 
-	pthread_create(&smkr0, 0,smoker, 0); 
-	pthread_create(&smkr1, 0,smoker, 1); 
-	pthread_create(&smkr2, 0,smoker, 2);
-
-	while(running);*/
 
 	return 0;
 }
